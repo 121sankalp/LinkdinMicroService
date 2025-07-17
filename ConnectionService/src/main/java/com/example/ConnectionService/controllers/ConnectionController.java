@@ -4,10 +4,7 @@ import com.example.ConnectionService.entity.Person;
 import com.example.ConnectionService.service.ConnectionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,5 +19,12 @@ public class ConnectionController {
     {
         List<Person> personList =   connectionService.getFirstDegreeConnectionOfUser(userId) ;
         return  ResponseEntity.ok(personList) ;
+    }
+
+    @PostMapping("/request/{userId}")
+    public  ResponseEntity<Void> sendConnectionRequest(@PathVariable Long userId)
+    {
+        connectionService.sendConnectionRequest(userId)  ;
+        return  ResponseEntity.noContent().build() ;
     }
 }

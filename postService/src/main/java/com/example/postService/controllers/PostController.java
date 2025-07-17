@@ -1,5 +1,8 @@
 package com.example.postService.controllers;
 
+import com.example.postService.auth.AuthContextHolder;
+import com.example.postService.client.ConnectionServiceClient;
+import com.example.postService.dtos.PersonDto;
 import com.example.postService.dtos.PostCreateRequestDto;
 import com.example.postService.dtos.PostDto;
 import com.example.postService.services.PostService;
@@ -16,16 +19,22 @@ import java.util.List;
 @RequestMapping("/core")
 public class PostController {
     private final PostService postService  ;
+    private final ConnectionServiceClient connectionServiceClient ;
     @PostMapping
     ResponseEntity<PostDto> createPost(@RequestBody PostCreateRequestDto postCreateRequestDto)
     {
-      PostDto postDto =   postService.createPost(postCreateRequestDto,1L) ;
-      return new ResponseEntity<>(postDto, HttpStatus.CREATED) ;
+        Long userId = AuthContextHolder.getCurrentUserId() ;
+        PostDto postDto =   postService.createPost(postCreateRequestDto,userId) ;
+        return new ResponseEntity<>(postDto, HttpStatus.CREATED) ;
     }
     @GetMapping("/{id}")
     ResponseEntity<PostDto> getPostById(@PathVariable Long id)
     {
         PostDto postDto = postService.getPostById(id) ;
+        Long userId= AuthContextHolder.getCurrentUserId()  ;
+        // TODO: REMOVE IN FUTURE
+        //call connection service from the post service and pass the user id inside the feign client
+       List<PersonDto>postDtoList  = connectionServiceClient.getFirstDegreeConnection(  userId) ;
         return ResponseEntity.ok(postDto) ;
     }
     @GetMapping("/users/{userId}/allPosts")

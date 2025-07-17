@@ -4,6 +4,7 @@ import com.example.userService.dtos.LoginRequestDto;
 import com.example.userService.dtos.SignUpRequestDto;
 import com.example.userService.dtos.UserDto;
 import com.example.userService.entities.User;
+import com.example.userService.event.UserCreatedEvent;
 import com.example.userService.exceptions.BadRequestException;
 import com.example.userService.exceptions.ResourceNotFoundException;
 import com.example.userService.repositories.UserRepository;
@@ -12,6 +13,7 @@ import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -22,6 +24,7 @@ public class AuthService {
     private  final ModelMapper modelMapper ;
     private  final UserRepository userRepository ;
     private final JWTService jwtService ;
+    private final KafkaTemplate<Long, UserCreatedEvent> userCreatedEventKafkaTemplate ;
     public UserDto signUp(SignUpRequestDto signUpRequestDto) {
       log.info("signUp the user with the email {}" , signUpRequestDto.getEmail());
 
@@ -38,6 +41,13 @@ public class AuthService {
 
 
          userRepository.save(user ) ;
+
+        UserCreatedEvent userCreatedEvent = UserCreatedEvent.builder()
+                .name(user.getName())
+                .userId(user.getId())
+                .build();
+
+        userCreatedEventKafkaTemplate.send("user_created_topic",userCreatedEvent) ;
 
 
          return  modelMapper.map(user , UserDto.class) ;
