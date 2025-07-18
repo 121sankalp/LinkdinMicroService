@@ -3,9 +3,12 @@ package com.example.ConnectionService.service;
 import com.example.ConnectionService.auth.AuthContextHolder;
 import com.example.ConnectionService.dtos.PersonDto;
 import com.example.ConnectionService.entity.Person;
+import com.example.ConnectionService.event.ConnectionEvent;
+import com.example.ConnectionService.exceptions.BadRequestException;
 import com.example.ConnectionService.repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ConnectionService {
     private  final  PersonRepository personRepository ;
+    private  final KafkaTemplate<Long , ConnectionEvent> connectionEventKafkaTemplate ;
     public  List<Person> getFirstDegreeConnectionOfUser(Long userId)
     {
         log.info("getting first degree connection of user with userId {}" , userId);
@@ -32,7 +36,7 @@ public class ConnectionService {
         log.info("sending connection request with senderId:{},receiverId:{}",senderId,receiverId);
         if(senderId.equals(receiverId))
         {
-            throw new RuntimeException("Both Sender and receiver are same") ;
+            throw new BadRequestException("Both Sender and receiver are same") ;
 
         }
 
@@ -40,19 +44,26 @@ public class ConnectionService {
 
         if (alreadySentRequest)
         {
-            throw new RuntimeException("Connection Request Already Exists cannot send again") ;
+            throw new BadRequestException("Connection Request Already Exists cannot send again") ;
         }
 
         boolean alreadyConnected = personRepository.alreadyConnected(senderId,receiverId);
 
         if(alreadyConnected)
         {
-            throw new RuntimeException("Already Connected , cannot send request again") ;
+            throw new BadRequestException("Already Connected , cannot send request again") ;
         }
 
 
 
         personRepository.addConnectionRequest(senderId, receiverId);
+
+        ConnectionEvent connectionEvent = ConnectionEvent.builder()
+                .SenderId(senderId)
+                .receiverId(receiverId)
+                .build();
+
+        connectionEventKafkaTemplate.send("connection_request_topic",connectionEvent) ;
 
         log.info("successfully send the connection request ");
 
@@ -64,7 +75,7 @@ public class ConnectionService {
         log.info("Accepting connection request with senderId:{},receiverId:{}",senderId,receiverId);
         if(senderId.equals(receiverId))
         {
-            throw new RuntimeException("Both Sender and receiver are same") ;
+            throw new BadRequestException("Both Sender and receiver are same") ;
 
         }
 
@@ -72,17 +83,26 @@ public class ConnectionService {
 
         if(alreadyConnected)
         {
-            throw new RuntimeException("Already Connected , cannot accept connection request again") ;
+            throw new BadRequestException("Already Connected , cannot accept connection request again") ;
         }
 
         boolean alreadySentRequest =  personRepository.connectionRequestExists(senderId,receiverId) ;
         if (!alreadySentRequest)
         {
-            throw new RuntimeException(" No Connection Exists cannot accept without accept") ;
+            throw new BadRequestException(" No Connection Exists cannot accept without accept") ;
         }
 
 
         personRepository.acceptConnectionRequest(senderId,receiverId);
+
+        ConnectionEvent connectionEvent = ConnectionEvent.builder()
+                .SenderId(senderId)
+                .receiverId(receiverId)
+                .build();
+
+        connectionEventKafkaTemplate.send("connection_request_topic",connectionEvent) ;
+
+
 
         log.info("successfully accepted the connection request withs senderId:{} , receiverId:{}",senderId,receiverId );
 
@@ -95,12 +115,12 @@ public class ConnectionService {
 
         if(senderId.equals(receiverId))
         {
-            throw new RuntimeException("Both Sender and receiver are same") ;
+            throw new BadRequestException("Both Sender and receiver are same") ;
         }
         boolean alreadySentRequest =  personRepository.connectionRequestExists(senderId,receiverId) ;
         if (!alreadySentRequest)
         {
-            throw new RuntimeException(" No Connection Exists cannot reject") ;
+            throw new BadRequestException(" No Connection Exists cannot reject") ;
         }
 
         personRepository.rejectConnectionRequest(senderId,receiverId);
