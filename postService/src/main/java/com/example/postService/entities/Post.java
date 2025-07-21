@@ -23,6 +23,7 @@ public class Post {
     @CreationTimestamp
     private LocalDateTime createdAt ;
 
+   private String imageUrl ;
 
 
 
