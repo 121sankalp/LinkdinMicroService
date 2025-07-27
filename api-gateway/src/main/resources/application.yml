@@ -5,31 +5,31 @@ spring:
   application:
     name: api-gateway
 
-  cloud:
-    gateway:
-      routes:
-        - id: user-service
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/api/v1/users/**
-          filters:
-            - StripPrefix=2
+cloud:
+  gateway:
+    routes:
+      - id: user-service
+        uri: ${USER_SERVICE_URI:lb://USER-SERVICE}
+        predicates:
+          - Path=/api/v1/users/**
+        filters:
+          - StripPrefix=2
 
-        - id: post-service
-          uri: lb://POST-SERVICE
-          predicates:
-            - Path=/api/v1/posts/**
-          filters:
-            - StripPrefix=2
-            - Authentication
+      - id: post-service
+        uri: ${POSTS_SERVICE_URI:lb://POST-SERVICE}
+        predicates:
+          - Path=/api/v1/posts/**
+        filters:
+          - StripPrefix=2
+          - name: AuthenticationFilter
 
-        - id: connection-service
-          uri: lb://CONNECTION-SERVICE
-          predicates:
-            - Path=/api/v1/connections/**
-          filters:
-            - StripPrefix=2
-            - Authentication
+      - id: connection-service
+        uri: ${CONNECTIONS_SERVICE_URI:lb://CONNECTION-SERVICE}
+        predicates:
+          - Path=/api/v1/connections/**
+        filters:
+          - StripPrefix=2
+          - name: AuthenticationFilter
 
 server:
   port: 8050
