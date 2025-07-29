@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: connections-service
-        image: anuj55149/linkedin-app-connections-service
+        image: sankalp999/linkedin-app-connection-service
         resources:
           limits:
             memory: "400Mi"
@@ -27,7 +27,7 @@ spec:
           - name: DB_USERNAME
             value: neo4j
           - name: DB_PASSWORD
-            value: "12345678"
+            value: password
           - name: DB_NAME
             value: connections-db
           - name: KAFKA_LOG4J_ROOT_LOGLEVEL

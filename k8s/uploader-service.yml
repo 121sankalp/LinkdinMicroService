@@ -25,7 +25,7 @@ spec:
           - name: SPRING_PROFILES_ACTIVE
             value: k8s
         ports:
-        - containerPort: 9090
+        - containerPort: 9050
 
 ---
 
@@ -38,4 +38,4 @@ spec:
     app: uploader-service
   ports:
   - port: 80
-    targetPort: 9090
+    targetPort: 9050

@@ -15,8 +15,9 @@ import java.util.Date;
 @Service
 public class JWTService {
 
-    @Value("${spring.jwt.secret-key}")
-    private String jwtSecretKey;
+
+    @Value("${jwt.secretKey}")
+    private String jwtSecretKey;;
 
     private SecretKey getSecretKey() {
         return Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
