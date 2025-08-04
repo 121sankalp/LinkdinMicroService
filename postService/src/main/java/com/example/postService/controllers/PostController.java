@@ -9,8 +9,10 @@ import com.example.postService.services.PostService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,12 +22,11 @@ import java.util.List;
 public class PostController {
     private final PostService postService  ;
     private final ConnectionServiceClient connectionServiceClient ;
-    @PostMapping
-    ResponseEntity<PostDto> createPost(@RequestBody PostCreateRequestDto postCreateRequestDto)
-    {
-        Long userId = AuthContextHolder.getCurrentUserId() ;
-        PostDto postDto =   postService.createPost(postCreateRequestDto,userId) ;
-        return new ResponseEntity<>(postDto, HttpStatus.CREATED) ;
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<PostDto> createPost(@RequestPart("post") PostCreateRequestDto postCreateRequestDto,
+                                              @RequestPart("file") MultipartFile file) {
+        PostDto postDto = postService.createPost(postCreateRequestDto, file);
+        return new ResponseEntity<>(postDto, HttpStatus.CREATED);
     }
     @GetMapping("/{id}")
     ResponseEntity<PostDto> getPostById(@PathVariable Long id)

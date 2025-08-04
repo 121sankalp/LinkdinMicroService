@@ -1,5 +1,6 @@
 package com.example.postService.config;
 
+import feign.form.spring.SpringFormEncoder;
 import jakarta.persistence.Column;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
@@ -12,5 +13,10 @@ public class AppConfig {
     public ModelMapper modelMapper()
     {
         return  new ModelMapper() ;
+    }
+
+    @Bean
+    public SpringFormEncoder feignFormEncoder() {
+        return new SpringFormEncoder();
     }
 }

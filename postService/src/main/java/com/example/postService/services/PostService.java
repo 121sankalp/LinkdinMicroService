@@ -1,6 +1,8 @@
 package com.example.postService.services;
 
+import com.example.postService.auth.AuthContextHolder;
 import com.example.postService.client.ConnectionServiceClient;
+import com.example.postService.client.UploaderClient;
 import com.example.postService.dtos.PersonDto;
 import com.example.postService.dtos.PostCreateRequestDto;
 import com.example.postService.dtos.PostDto;
@@ -11,8 +13,10 @@ import com.example.postService.repositories.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,17 +32,48 @@ public class PostService {
     private  final KafkaTemplate<Long, PostCreatedEvent> postCreatedEventKafkaTemplate ;
     private  final ConnectionServiceClient connectionServiceClient ;
     private  final ModelMapper modelMapper ;
+    private final UploaderClient uploaderServiceClient ;
 
 
-    public PostDto createPost(PostCreateRequestDto postCreateRequestDto,Long userId) {
-       Post post = modelMapper.map(postCreateRequestDto, Post.class) ;
 
-       post.setUserId(userId);
-        postRepository.save(post) ;
+//    public PostDto createPost(PostCreateRequestDto postCreateRequestDto,Long userId) {
+//       Post post = modelMapper.map(postCreateRequestDto, Post.class) ;
+//
+//       post.setUserId(userId);
+//        postRepository.save(post) ;
+//
+//        List<PersonDto> personDtoList = connectionServiceClient.getFirstDegreeConnection(userId)  ;
+//
+//
+//        for(PersonDto personDto:personDtoList)
+//        {
+//            // send notification to each service
+//
+//            PostCreatedEvent postCreatedEvent = PostCreatedEvent.builder()
+//                    .postId(post.getId())
+//                    .content(post.getContent())
+//                    .userId(personDto.getUserId())
+//                    .ownerUserId(userId)
+//                    .build();
+//
+//            postCreatedEventKafkaTemplate.send("post_created_topic" , postCreatedEvent) ;
+//
+//        }
+//       return  modelMapper.map(post , PostDto.class) ;
+//    }
 
-        List<PersonDto> personDtoList = connectionServiceClient.getFirstDegreeConnection(userId)  ;
+    public PostDto createPost(PostCreateRequestDto postCreateRequestDto, MultipartFile file) {
+        Long userId = AuthContextHolder.getCurrentUserId();
+        log.info("Creating post for user with id: {}", userId);
 
+        ResponseEntity<String> imageUrl = uploaderServiceClient.uploadFile(file);
 
+        Post post = modelMapper.map(postCreateRequestDto, Post.class);
+        post.setUserId(userId);
+        post.setImageUrl(imageUrl.getBody());
+        post = postRepository.save(post);
+
+        List<PersonDto> personDtoList = connectionServiceClient.getFirstDegreeConnection(userId);
         for(PersonDto personDto:personDtoList)
         {
             // send notification to each service
@@ -53,8 +88,10 @@ public class PostService {
             postCreatedEventKafkaTemplate.send("post_created_topic" , postCreatedEvent) ;
 
         }
-       return  modelMapper.map(post , PostDto.class) ;
+        return  modelMapper.map(post , PostDto.class) ;
     }
+
+
 
     public PostDto getPostById(Long id) {
 
