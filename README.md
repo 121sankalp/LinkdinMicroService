@@ -59,18 +59,18 @@ ConnectIn is designed for **scalability, high availability, and real-time perfor
 
 ---
 
-## 🖼️ Microservice Breakdown
-- 👤 **User ↔ Posts ↔ Notifications** flow  
-- 📩 **Event-driven communication** with Kafka  
-- 🧩 **Monolith → Modular microservices** for scalability  
+## 🖼️ Architecture Diagrams
+Here are the high-level design and architecture diagrams for **ConnectIn**:  
+
+### 🔹 High-Level Architecture  
+![High Level Design](./images/first.jpeg)  
+
+### 🔹 Graph DB vs Relational DB  
+![Graph DB](./images/sec.jpeg)  
+
+### 🔹 Microservices Architecture  
+![Microservices](./images/third.jpeg)  
 
 ---
 
-## 📸 Architecture Diagrams
-(Add your images here once uploaded inside an `images/` folder in your repo)  
-
-```markdown
-![High Level Design](./images/high-level-architecture.png)  
-![Graph Database](./images/graph-db.png)  
-![Microservices](./images/microservices.png)  
-  
+✨ Built with ❤️ for scalability, reliability, and performance.  
